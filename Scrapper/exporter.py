@@ -3,7 +3,7 @@ import logging
 import os
 from typing import List
 
-from .scraper import VacancyItem
+from Scrapper.scraper import VacancyItem
 
 
 class CSVExporter:
