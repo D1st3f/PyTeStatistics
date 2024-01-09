@@ -5,8 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from .exporter import CSVExporter
-from .scraper import Scraper
+from Scrapper.exporter import CSVExporter
+from Scrapper.scraper import Scraper
 
 
 class ChromeWebDriver:
@@ -25,12 +25,15 @@ class ChromeWebDriver:
         self._driver.close()
 
 
-def get_all_vacancy():
+def get_all_vacancy() -> None:
     logging.basicConfig(format='%(levelname)s - %(message)s',
                         level=logging.INFO)
-
     with ChromeWebDriver() as driver:
         scraper = Scraper(driver)
         all_vacancies = scraper.scrape_all_vacancies()
         filename = f'{datetime.now().strftime("Data %Y-%m-%d")}.csv'
         CSVExporter.export_to_csv(filename, all_vacancies)
+
+
+if __name__ == "__main__":
+    get_all_vacancy()

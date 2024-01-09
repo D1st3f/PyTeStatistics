@@ -20,7 +20,7 @@ class VacancyItem:
 
 
 class Scraper:
-    def __init__(self, driver: WebDriver):
+    def __init__(self, driver: WebDriver) -> None:
         self.driver = driver
 
     def get_current_page_number(self) -> str:
@@ -40,7 +40,7 @@ class Scraper:
             return True
 
     @staticmethod
-    def parse_vacancy(vacancy):
+    def parse_vacancy(vacancy) -> VacancyItem:
         title = vacancy.find_element(By.CLASS_NAME, "job-list-item__link").text
         text = vacancy.find_element(
             By.CSS_SELECTOR,
@@ -86,12 +86,12 @@ class Scraper:
             applications=int(applications)
         )
 
-    def parse_all_vacancies(self):
+    def parse_all_vacancies(self) -> [VacancyItem]:
         all_vacancies_card = self.driver.find_elements(By.CLASS_NAME,
                                                        "job-list-item")
         return [self.parse_vacancy(vacancy) for vacancy in all_vacancies_card]
 
-    def scrape_all_vacancies(self):
+    def scrape_all_vacancies(self) -> [VacancyItem]:
         logging.info("Parsing started!")
         all_vacancies = []
         self.driver.get(BASE_URL)
