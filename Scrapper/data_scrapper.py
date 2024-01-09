@@ -26,7 +26,7 @@ class ChromeWebDriver:
 
 
 def get_all_vacancy() -> None:
-    logging.basicConfig(format='%(levelname)s - %(message)s',
+    logging.basicConfig(format="%(levelname)s - %(message)s",
                         level=logging.INFO)
     with ChromeWebDriver() as driver:
         scraper = Scraper(driver)

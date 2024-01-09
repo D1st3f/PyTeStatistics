@@ -27,13 +27,12 @@ class Scraper:
         current_page = self.driver.find_element(
             By.CSS_SELECTOR,
             "ul.pagination.pagination_with_numbers > "
-            "li.page-item.active > span.page-link"
+            "li.page-item.active > span.page-link",
         )
         return current_page.text.replace("\n(current)", "")
 
     def next_page(self) -> bool:
-        buttons_menu = self.driver.find_elements(By.CLASS_NAME,
-                                                 "page-link")
+        buttons_menu = self.driver.find_elements(By.CLASS_NAME, "page-link")
         if not buttons_menu[-1].get_attribute("aria-disabled"):
             self.driver.execute_script("arguments[0].click();",
                                        buttons_menu[-1])
@@ -43,8 +42,7 @@ class Scraper:
     def parse_vacancy(vacancy) -> VacancyItem:
         title = vacancy.find_element(By.CLASS_NAME, "job-list-item__link").text
         text = vacancy.find_element(
-            By.CSS_SELECTOR,
-            "div.job-list-item__description > span"
+            By.CSS_SELECTOR, "div.job-list-item__description > span"
         ).get_attribute("data-original-text")
         location = vacancy.find_element(By.CLASS_NAME, "location-text").text
         experience = 0
@@ -62,20 +60,28 @@ class Scraper:
             By.CSS_SELECTOR,
             "div.d-flex.align-items-center.font-size-small.mb-2 > "
             "span.job-list-item__counts.d-none.d-lg-inline-block.nobr > "
-            "span > span.mr-2.nobr"
+            "span > span.mr-2.nobr",
         ).get_attribute("data-original-title")
-        views = vacancy.find_element(
-            By.CSS_SELECTOR,
-            "div.d-flex.align-items-center.font-size-small.mb-2 > "
-            "span.job-list-item__counts.d-none.d-lg-inline-block.nobr > "
-            "span > span:nth-child(2) > span:nth-child(1)"
-        ).get_attribute("data-original-title").split(" ")[0]
-        applications = vacancy.find_element(
-            By.CSS_SELECTOR,
-            "div.d-flex.align-items-center.font-size-small.mb-2 > "
-            "span.job-list-item__counts.d-none.d-lg-inline-block.nobr > "
-            "span > span:nth-child(2) > span:nth-child(2)"
-        ).get_attribute("data-original-title").split(" ")[0]
+        views = (
+            vacancy.find_element(
+                By.CSS_SELECTOR,
+                "div.d-flex.align-items-center.font-size-small.mb-2 > "
+                "span.job-list-item__counts.d-none.d-lg-inline-block.nobr > "
+                "span > span:nth-child(2) > span:nth-child(1)",
+            )
+            .get_attribute("data-original-title")
+            .split(" ")[0]
+        )
+        applications = (
+            vacancy.find_element(
+                By.CSS_SELECTOR,
+                "div.d-flex.align-items-center.font-size-small.mb-2 > "
+                "span.job-list-item__counts.d-none.d-lg-inline-block.nobr > "
+                "span > span:nth-child(2) > span:nth-child(2)",
+            )
+            .get_attribute("data-original-title")
+            .split(" ")[0]
+        )
         return VacancyItem(
             title=title,
             text=text,
@@ -83,7 +89,7 @@ class Scraper:
             location=location,
             created=datetime.strptime(created, "%H:%M %d.%m.%Y"),
             views=int(views),
-            applications=int(applications)
+            applications=int(applications),
         )
 
     def parse_all_vacancies(self) -> [VacancyItem]:
