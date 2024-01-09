@@ -1,9 +1,12 @@
 import logging
 import os
+import re
+from collections import Counter
 from datetime import datetime
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from pandas import DataFrame
 
 from Scrapper.data_scrapper import get_all_vacancy
 from config import TECHNOLOGIES, ORDERED_DAYS
@@ -14,28 +17,28 @@ mlogger.setLevel(logging.WARNING)
 
 
 class DataProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.df = self.read_from_csv()
 
     @staticmethod
-    def create_output_directory(subdirectory):
+    def create_output_directory(subdirectory: str) -> str:
         current_directory = os.path.dirname(os.path.abspath(__file__))
         output_directory = os.path.join(
             current_directory,
-            "..", subdirectory,
+            "..",
+            subdirectory,
             datetime.now().strftime("%Y-%m-%d")
         )
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         return output_directory
 
-    def read_from_csv(self):
+    def read_from_csv(self) -> DataFrame:
         file_name = f'{datetime.now().strftime("Data %Y-%m-%d")}.csv'
         data_collection_directory = os.path.join(
             os.path.dirname(__file__), "..", "DataCollection"
         )
         full_path = os.path.join(data_collection_directory, file_name)
-
         if os.path.isfile(full_path):
             try:
                 logging.info(f"File '{file_name}' found and read!")
@@ -49,14 +52,14 @@ class DataProcessor:
             get_all_vacancy()
             return self.read_from_csv()
 
-    def save_plot(self, figure, output_filename):
+    def save_plot(self, figure: plt.Figure, output_filename: str) -> None:
         output_directory = self.create_output_directory("DataExport")
         figure.savefig(
             os.path.join(output_directory, output_filename),
             bbox_inches="tight"
         )
 
-    def plot_technology_mentions(self, threshold: int = 5):
+    def plot_technology_mentions(self, threshold: int = 5) -> None:
         logging.info("Generating 'Technology mentions' plot!")
         tech_mentions = {
             tech: self.df["text"].str.contains(tech, case=False)
@@ -67,33 +70,39 @@ class DataProcessor:
         tech_counts.columns = ["Technology", "Mentions"]
         tech_counts = tech_counts[
             tech_counts["Mentions"] > threshold
-        ].sort_values(by="Mentions", ascending=False)
+            ].sort_values(
+            by="Mentions",
+            ascending=False
+        )
         tech_counts["Technology"] = pd.Categorical(
             tech_counts["Technology"].unique(),
             categories=tech_counts["Technology"],
             ordered=True,
         )
         fig, ax = plt.subplots(figsize=(14, 6))
-        ax.bar(tech_counts["Technology"],
-               tech_counts["Mentions"],
-               color="deepskyblue")
+        ax.bar(
+            tech_counts["Technology"],
+            tech_counts["Mentions"],
+            color="deepskyblue"
+        )
         ax.set_title("Mentions of Technologies")
         ax.set_xlabel("Technologies")
         ax.set_ylabel("Number of Mentions")
         ax.tick_params(axis="x", rotation=90)
         plt.tight_layout()
-
         self.save_plot(fig, "technology_mentions.png")
         plt.close()
 
-    def plot_experience_distribution(self):
+    def plot_experience_distribution(self) -> None:
         logging.info("Generating 'Experience distribution' plot!")
         experience_df = self.df["experience"].value_counts().reset_index()
         experience_df.columns = ["Experience", "Count"]
         fig, ax = plt.subplots(figsize=(14, 6))
-        ax.bar(experience_df["Experience"],
-               experience_df["Count"],
-               color="lightcoral")
+        ax.bar(
+            experience_df["Experience"],
+            experience_df["Count"],
+            color="lightcoral"
+        )
         ax.set_xlabel("Years of Experience")
         ax.set_ylabel("Number of Postings")
         ax.set_title("Distribution Years of Experience")
@@ -101,7 +110,7 @@ class DataProcessor:
         self.save_plot(fig, "experience_distribution.png")
         plt.close()
 
-    def plot_postings_per_day(self):
+    def plot_postings_per_day(self) -> None:
         logging.info("Generating 'Postings per day' plot!")
         self.df["created"] = pd.to_datetime(self.df["created"])
         self.df.set_index("created", inplace=True)
@@ -120,9 +129,11 @@ class DataProcessor:
             ordered=True
         )
         fig, ax = plt.subplots(figsize=(14, 6))
-        ax.bar(day_of_week_df["Day of Week"],
-               day_of_week_df["Count"],
-               color="skyblue")
+        ax.bar(
+            day_of_week_df["Day of Week"],
+            day_of_week_df["Count"],
+            color="skyblue"
+        )
         ax.set_xlabel("Day of Week")
         ax.set_ylabel("Number of Postings")
         ax.set_title("Number of Postings Added on Each Day of the Week")
@@ -130,22 +141,64 @@ class DataProcessor:
         self.save_plot(fig, "postings_per_day.png")
         plt.close()
 
+    def extract_ukraine_location(self, location: str) -> list:
+        pattern = r"Україна \(([^)]+)\)"
+        match = re.search(pattern, location)
+        if match:
+            cities = match.group(1)
+            cities = cities.split("+")[0].strip()
+            return cities.split(", ")
+        else:
+            return None
+
+    def plot_location_distribution(self) -> None:
+        logging.info("Generating 'Location distribution' plot!")
+        self.df["filtered_location"] = self.df["location"].apply(
+            self.extract_ukraine_location
+        )
+        filtered_df = self.df.dropna(subset=["filtered_location"])
+        cities = [
+            city for sublist in filtered_df["filtered_location"] for city in
+            sublist
+        ]
+        city_counts = Counter(cities)
+        sorted_city_counts = dict(
+            sorted(city_counts.items(), key=lambda item: item[1], reverse=True)
+        )
+        fig, ax = plt.subplots(figsize=(14, 6))
+        ax.bar(
+            sorted_city_counts.keys(),
+            sorted_city_counts.values(),
+            color="mediumseagreen",
+        )
+        ax.set_xlabel("Location")
+        ax.set_ylabel("Number of Postings")
+        ax.set_title("Distribution of Postings by Location")
+        ax.tick_params(axis="x", rotation=45)
+        plt.tight_layout()
+        self.save_plot(fig, "location_distribution.png")
+        plt.close()
+
     def plot_combined_image(self) -> None:
         self.plot_technology_mentions()
         self.plot_experience_distribution()
         self.plot_postings_per_day()
+        self.plot_location_distribution()
         images = [
             "technology_mentions.png",
             "experience_distribution.png",
             "postings_per_day.png",
+            "location_distribution.png",
         ]
         combined_img = plt.figure(figsize=(28, 12))
         for i, img in enumerate(images, 1):
             ax = combined_img.add_subplot(2, 2, i)
             ax.imshow(
                 plt.imread(
-                    os.path.join(self.create_output_directory("DataExport"),
-                                 img)
+                    os.path.join(
+                        self.create_output_directory("DataExport"),
+                        img
+                    )
                 )
             )
             ax.axis("off")

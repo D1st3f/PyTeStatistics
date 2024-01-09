@@ -18,16 +18,20 @@ class ChromeWebDriver:
     def __enter__(self) -> WebDriver:
         return self._driver
 
-    def __exit__(self,
-                 exc_type: type,
-                 exc_val: Exception,
-                 exc_tb: type) -> None:
+    def __exit__(
+            self,
+            exc_type: type,
+            exc_val: Exception,
+            exc_tb: type
+    ) -> None:
         self._driver.close()
 
 
 def get_all_vacancy() -> None:
-    logging.basicConfig(format="%(levelname)s - %(message)s",
-                        level=logging.INFO)
+    logging.basicConfig(
+        format="%(levelname)s - %(message)s",
+        level=logging.INFO
+    )
     with ChromeWebDriver() as driver:
         scraper = Scraper(driver)
         all_vacancies = scraper.scrape_all_vacancies()

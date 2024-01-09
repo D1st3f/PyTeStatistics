@@ -34,8 +34,10 @@ class Scraper:
     def next_page(self) -> bool:
         buttons_menu = self.driver.find_elements(By.CLASS_NAME, "page-link")
         if not buttons_menu[-1].get_attribute("aria-disabled"):
-            self.driver.execute_script("arguments[0].click();",
-                                       buttons_menu[-1])
+            self.driver.execute_script(
+                "arguments[0].click();",
+                buttons_menu[-1]
+            )
             return True
 
     @staticmethod
@@ -93,8 +95,10 @@ class Scraper:
         )
 
     def parse_all_vacancies(self) -> [VacancyItem]:
-        all_vacancies_card = self.driver.find_elements(By.CLASS_NAME,
-                                                       "job-list-item")
+        all_vacancies_card = self.driver.find_elements(
+            By.CLASS_NAME,
+            "job-list-item"
+        )
         return [self.parse_vacancy(vacancy) for vacancy in all_vacancies_card]
 
     def scrape_all_vacancies(self) -> [VacancyItem]:

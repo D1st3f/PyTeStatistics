@@ -10,8 +10,10 @@ class CSVExporter:
     @staticmethod
     def export_to_csv(file_name: str, vacancies: List[VacancyItem]) -> None:
         current_directory = os.path.dirname(os.path.abspath(__file__))
-        parent_directory = os.path.abspath(os.path.join(current_directory,
-                                                        os.pardir))
+        parent_directory = os.path.abspath(os.path.join(
+            current_directory,
+            os.pardir
+        ))
         new_path = os.path.join(parent_directory, "DataCollection", file_name)
         with open(new_path, "w", newline="", encoding="utf-8") as csvfile:
             fieldnames = [
