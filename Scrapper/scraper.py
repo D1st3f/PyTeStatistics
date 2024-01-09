@@ -92,6 +92,7 @@ class Scraper:
         return [self.parse_vacancy(vacancy) for vacancy in all_vacancies_card]
 
     def scrape_all_vacancies(self):
+        logging.info("Parsing started!")
         all_vacancies = []
         self.driver.get(BASE_URL)
         all_vacancies.extend(self.parse_all_vacancies())

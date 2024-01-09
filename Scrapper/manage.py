@@ -5,8 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from exporter import CSVExporter
-from scraper import Scraper
+from .exporter import CSVExporter
+from .scraper import Scraper
 
 
 class ChromeWebDriver:
